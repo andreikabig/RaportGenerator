@@ -143,7 +143,7 @@ namespace RaportGenerator
                     exTable.DatesCurrent = table.Rows[3][1].ToString();
                     exTable.DatesLast = table.Rows[3][2].ToString();
 
-                    for (int i = 4; i < 32; i++)
+                    for (int i = 4; i < 31; i++) // РЕЗУЛЬТИРУЮЩУЮ БУДЕМ ВЫВОДИТЬ САМОСТОЯТЕЛЬНО, ПОСЛЕ СОРТИРОВКИ!
                     {
                         Entry entry = new Entry();
 
