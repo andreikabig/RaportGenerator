@@ -1,0 +1,22 @@
+﻿<Window x:Class="RaportGenerator.HelpWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:RaportGenerator"
+        mc:Ignorable="d"
+        Title="Информация о программе" Height="450" Width="500
+        ">
+    <Grid>
+
+        <Label Content="Выберите интересующий Вас вопрос:" HorizontalAlignment="Left" Margin="35,67,0,0" VerticalAlignment="Top" FontFamily="Arial" FontSize="12"/>
+        <TextBlock HorizontalAlignment="Center" Margin="0,22,0,0" TextWrapping="Wrap" Text="Программа предназначена для автоматической генерации еженедельных отчетов по статистике смертности населения." VerticalAlignment="Top" Width="416" Height="33" FontSize="12" FontFamily="Arial"/>
+        <ComboBox x:Name="InfoComboBox" HorizontalAlignment="Center" Margin="0,96,0,0" VerticalAlignment="Top" Width="416" Height="20" Text="fd" SelectionChanged="ComboBox_SelectionChanged">
+            <ComboBoxItem Content="Как работает программа?"/>
+            <ComboBoxItem Content="Возник вопрос, куда я могу обратиться?"/>
+            <ComboBoxItem Content="Требования к Excel документам."/>
+        </ComboBox>
+        <TextBlock x:Name="tbInfo" HorizontalAlignment="Center" Margin="0,134,0,0" TextWrapping="Wrap" Text="Здесь Вы увидете ответ на свой вопрос. Пожалуйста, выберите интересующий Вас вопрос выше." VerticalAlignment="Top" Width="416" Height="269" FontSize="12" FontFamily="Arial"/>
+
+    </Grid>
+</Window>

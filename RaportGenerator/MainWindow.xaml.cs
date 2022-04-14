@@ -48,8 +48,14 @@ namespace RaportGenerator
             tables = new List<ExcelTable>();
 
             GetData();
+            SortTables(tables);
 
-
+            string msg = "";
+            foreach (var entry in tables[0].Entries)
+            {
+                msg += $"{entry.Name}\t{entry.QuantityCurrent}\t{entry.QuantityCurrent}\t{entry.DynamicAbs}\t\t{entry.DynamicPersents}\n";
+            }
+            MessageBox.Show(msg);
         }
 
         // МЕТОД ЗАГРУЗКИ ДАННЫХ ИЗ EXCEL ФАЙЛА
@@ -81,6 +87,10 @@ namespace RaportGenerator
         // МЕТОД СЧИТЫВАНИЯ ДАННЫХ С ТАБЛИЦ
         private void OpenExcelFile(string path)
         {
+            if (tables != null)
+                tables.Clear();
+            if (tableCollection != null)
+                tableCollection.Clear();
             using (FileStream fs = File.Open(path, FileMode.Open, FileAccess.Read))
             {
                 using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(fs))
@@ -187,18 +197,19 @@ namespace RaportGenerator
                     tables.Add(exTable);
                 }
             }
-            
         }
 
-        // МЕТОД  ПРОСМОТРА СПАРСЕННЫХ ДАННЫХ
-        private void ShowData()
+        // МЕТОД  СОРТИРОВКИ ИСХОДНЫХ ДАННЫХ
+        private void SortTables(List<ExcelTable> tables)
         {
             foreach (var table in tables)
-            { 
-                
-            }
+                table.Entries = table.Entries.OrderBy(e => e.DynamicPersents).ToList();
         }
 
-       
+        private void BtnInfo_Click(object sender, RoutedEventArgs e)
+        {
+            HelpWindow helpWindow = new HelpWindow();
+            helpWindow.Show();
+        }
     }
 }

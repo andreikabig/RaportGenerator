@@ -5,23 +5,31 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RaportGenerator"
         mc:Ignorable="d"
-        Title="Генератор отчета по статистике | Смертность населения" Height="450" Width="800">
+        Title="Генератор отчета по статистике | Смертность населения" Height="725" Width="900">
 
     <Grid>
-        <Menu Height="19" VerticalAlignment="Top">
-            <MenuItem Header="Файл">
-                <MenuItem Header="Открыть" Click="BtnLoadData_Click"></MenuItem>
-                <MenuItem Header="Сохранить"></MenuItem>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="113*"/>
+            <ColumnDefinition Width="87*"/>
+        </Grid.ColumnDefinitions>
+        <Menu Height="19" VerticalAlignment="Top" Grid.ColumnSpan="2">
+            <MenuItem Header="Файл" FontSize="12">
+                <MenuItem Header="Открыть общую аналитику смертности" Click="BtnLoadData_Click" FontSize="12"></MenuItem>
+                <MenuItem Header="Открыть младенческую аналитику смертности" FontSize="12"></MenuItem>
+                <Separator />
+                <MenuItem Header="Параметры сохранения" FontSize="12"></MenuItem>
             </MenuItem>
 
-            <MenuItem Header="Помощь">
-                <MenuItem Header="Информация"></MenuItem>
+            <MenuItem Header="Помощь" FontSize="12">
+                <MenuItem Header="Информация" Click="BtnInfo_Click" FontSize="12"></MenuItem>
             </MenuItem>
         </Menu>
-        <Label Content="Выберите лист: " HorizontalAlignment="Left" Margin="10,24,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.549,0.647"/>
-        <Button Content="Создать отчет" HorizontalAlignment="Left" Margin="660,30,0,0" VerticalAlignment="Top" Background="#FFF3F3F3" Width="130" Click="Button_Click"/>
-        <DataGrid x:Name="DgvTable" d:ItemsSource="{Binding}" Margin="0,55,0,98"/>
-        <ComboBox x:Name="ComboBoxPages" HorizontalAlignment="Left" Margin="112,27,0,0" VerticalAlignment="Top" Width="120" Height="19" FontSize="10" SelectionChanged="ComboBoxPages_SelectionChanged"/>
+        <Label Content="Выберите лист: " HorizontalAlignment="Left" Margin="10,46,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.549,0.647" FontSize="12"/>
+        <Button Content="Создать отчет" HorizontalAlignment="Right" Margin="0,30,25,0" VerticalAlignment="Top" Background="#FFF3F3F3" Width="130" Click="Button_Click" Grid.Column="1"/>
+        <DataGrid x:Name="DgvTable" d:ItemsSource="{Binding}" Margin="0,76,0,0" Grid.ColumnSpan="2"/>
+        <ComboBox x:Name="ComboBoxPages" HorizontalAlignment="Left" Margin="112,49,0,0" VerticalAlignment="Top" Width="338" Height="22" FontSize="12" SelectionChanged="ComboBoxPages_SelectionChanged"/>
+        <Label Content="Предпросмотр структуры документа:" HorizontalAlignment="Left" Margin="10,20,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.549,0.647" FontSize="12"/>
+
 
     </Grid>
 
