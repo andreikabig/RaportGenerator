@@ -46,8 +46,8 @@ namespace RaportGenerator
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             tables = new List<ExcelTable>();
-            
-            
+
+            GetData();
 
 
         }
@@ -112,7 +112,7 @@ namespace RaportGenerator
         private void ComboBoxPages_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             // Выбираем страницу, соответствующую выбранной в ComboBoxPages
-            DataTable? table = tableCollection[Convert.ToString(ComboBoxPages.SelectedItem)] ;
+            DataTable? table = tableCollection[Convert.ToString(ComboBoxPages.SelectedItem)];
 
             // Если такая страница есть
             if (table != null)
@@ -128,5 +128,77 @@ namespace RaportGenerator
                 
             }
         }
+
+        // МЕТОД СБОРА ДАННЫХ
+        private void GetData()
+        {
+            //DataTable? table = tableCollection[Convert.ToString(ComboBoxPages.SelectedItem)];
+            foreach (DataTable table in tableCollection)
+            {
+                if (table != null)
+                {
+                    ExcelTable exTable = new ExcelTable();
+
+                    exTable.TableName = table.Rows[0][0].ToString();
+                    exTable.DatesCurrent = table.Rows[3][1].ToString();
+                    exTable.DatesLast = table.Rows[3][2].ToString();
+
+                    for (int i = 4; i < 32; i++)
+                    {
+                        Entry entry = new Entry();
+
+                        entry.Name = table.Rows[i][0].ToString();
+
+                        // ИСПРАВИТЬ НА ОТДЕЛЬНЫЙ МЕТОД
+                        try
+                        {
+                            entry.QuantityCurrent = (double)table.Rows[i][1];
+                        }
+                        catch (System.InvalidCastException ex)
+                        {
+                        }
+
+                        try
+                        {
+                            entry.QuantityLast = (double)table.Rows[i][2];
+                        }
+                        catch (System.InvalidCastException ex)
+                        {
+                        }
+
+                        try
+                        {
+                            entry.DynamicAbs = (double)table.Rows[i][3];
+                        }
+                        catch (System.InvalidCastException ex)
+                        {
+                        }
+                        try
+                        {
+                            entry.DynamicPersents = (double)table.Rows[i][4];
+                        }
+                        catch (System.InvalidCastException ex)
+                        {
+                        }
+                        
+
+                        exTable.Entries.Add(entry);
+                    }
+                    tables.Add(exTable);
+                }
+            }
+            
+        }
+
+        // МЕТОД  ПРОСМОТРА СПАРСЕННЫХ ДАННЫХ
+        private void ShowData()
+        {
+            foreach (var table in tables)
+            { 
+                
+            }
+        }
+
+       
     }
 }

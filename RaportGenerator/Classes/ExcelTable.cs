@@ -17,6 +17,9 @@ namespace RaportGenerator.Classes
         // Список данных (города со статистикой)
         public List<Entry> Entries = new List<Entry>();
 
+        // Период
+        public string? DatesLast { get; set; }
+        public string? DatesCurrent { get; set; }
 
     }
 }

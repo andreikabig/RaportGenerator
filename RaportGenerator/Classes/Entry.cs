@@ -15,16 +15,17 @@ namespace RaportGenerator.Classes
         public string? Name { get; set; }
 
         // Количественные данные за текущий период 
-        public QuantityCurrent? QuantityCurrent { get; set; }
+        public double QuantityCurrent { get; set; }
 
         // Количественные данные за прощедший период
-        public QuantityLast? QuantityLast { get; set; }
+        public double QuantityLast { get; set; }
 
         // Числовая сравнительная динамика
-        public int? DynamicAbs { get; set; }
+        public double? DynamicAbs { get; set; }
 
         // Процентная сравнительная динамика
         public double? DynamicPersents { get; set; }
+
 
     }
 }

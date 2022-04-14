@@ -8,7 +8,5 @@
         // Кол-во
         public int Value { get; set; }
 
-        // Период
-        public string? Dates { get; set; }
     }
 }
