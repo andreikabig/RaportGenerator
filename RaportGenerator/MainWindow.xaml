@@ -22,6 +22,8 @@
 
             <MenuItem Header="Помощь" FontSize="12">
                 <MenuItem Header="Информация" Click="BtnInfo_Click" FontSize="12"></MenuItem>
+                <Separator />
+                <MenuItem Header="Настройки" Click="BtnSettings_Click" FontSize="12"></MenuItem>
             </MenuItem>
         </Menu>
         <Label Content="Выберите лист: " HorizontalAlignment="Left" Margin="10,46,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.549,0.647" FontSize="12"/>
