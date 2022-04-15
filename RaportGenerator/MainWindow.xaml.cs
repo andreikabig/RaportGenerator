@@ -211,5 +211,13 @@ namespace RaportGenerator
             HelpWindow helpWindow = new HelpWindow();
             helpWindow.Show();
         }
+
+       
+
+        private void BtnSettings_Click(object sender, RoutedEventArgs e)
+        {
+            SettingsWindow settingsWindow = new SettingsWindow();
+            settingsWindow.Show();
+        }
     }
 }
