@@ -11,20 +11,28 @@ namespace RaportGenerator.Classes
     /// </summary>
     public class Entry
     {
-        // Наименование данных
+        // Наименование объекта
         public string? Name { get; set; }
 
-        // Количественные данные за текущий период 
-        public double QuantityCurrent { get; set; }
+        // Свойства объекта
+        public List<IProperty> Properties = new List<IProperty>();
 
-        // Количественные данные за прощедший период
-        public double QuantityLast { get; set; }
 
-        // Числовая сравнительная динамика
-        public double? DynamicAbs { get; set; }
 
-        // Процентная сравнительная динамика
-        public double? DynamicPersents { get; set; }
+        //// Наименование данных
+        //public string? Name { get; set; }
+
+        //// Количественные данные за текущий период 
+        //public double QuantityCurrent { get; set; }
+
+        //// Количественные данные за прощедший период
+        //public double QuantityLast { get; set; }
+
+        //// Числовая сравнительная динамика
+        //public double? DynamicAbs { get; set; }
+
+        //// Процентная сравнительная динамика
+        //public double? DynamicPersents { get; set; }
 
 
     }

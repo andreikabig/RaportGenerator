@@ -38,6 +38,7 @@ namespace RaportGenerator
         public MainWindow()
         {
             InitializeComponent();
+
             // Config the encoding to Russian
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
@@ -53,7 +54,7 @@ namespace RaportGenerator
             string msg = "";
             foreach (var entry in tables[0].Entries)
             {
-                msg += $"{entry.Name}\t{entry.QuantityCurrent}\t{entry.QuantityCurrent}\t{entry.DynamicAbs}\t\t{entry.DynamicPersents}\n";
+                //msg += $"{entry.Name}\t{entry.QuantityCurrent}\t{entry.QuantityCurrent}\t{entry.DynamicAbs}\t\t{entry.DynamicPersents}\n";
             }
             MessageBox.Show(msg);
         }
@@ -160,36 +161,36 @@ namespace RaportGenerator
                         entry.Name = table.Rows[i][0].ToString();
 
                         // ИСПРАВИТЬ НА ОТДЕЛЬНЫЙ МЕТОД
-                        try
-                        {
-                            entry.QuantityCurrent = (double)table.Rows[i][1];
-                        }
-                        catch (System.InvalidCastException ex)
-                        {
-                        }
+                        //try
+                        //{
+                        //    entry.QuantityCurrent = (double)table.Rows[i][1];
+                        //}
+                        //catch (System.InvalidCastException ex)
+                        //{
+                        //}
 
-                        try
-                        {
-                            entry.QuantityLast = (double)table.Rows[i][2];
-                        }
-                        catch (System.InvalidCastException ex)
-                        {
-                        }
+                        //try
+                        //{
+                        //    entry.QuantityLast = (double)table.Rows[i][2];
+                        //}
+                        //catch (System.InvalidCastException ex)
+                        //{
+                        //}
 
-                        try
-                        {
-                            entry.DynamicAbs = (double)table.Rows[i][3];
-                        }
-                        catch (System.InvalidCastException ex)
-                        {
-                        }
-                        try
-                        {
-                            entry.DynamicPersents = (double)table.Rows[i][4];
-                        }
-                        catch (System.InvalidCastException ex)
-                        {
-                        }
+                        //try
+                        //{
+                        //    entry.DynamicAbs = (double)table.Rows[i][3];
+                        //}
+                        //catch (System.InvalidCastException ex)
+                        //{
+                        //}
+                        //try
+                        //{
+                        //    entry.DynamicPersents = (double)table.Rows[i][4];
+                        //}
+                        //catch (System.InvalidCastException ex)
+                        //{
+                        //}
                         
 
                         exTable.Entries.Add(entry);
@@ -202,8 +203,8 @@ namespace RaportGenerator
         // МЕТОД  СОРТИРОВКИ ИСХОДНЫХ ДАННЫХ
         private void SortTables(List<ExcelTable> tables)
         {
-            foreach (var table in tables)
-                table.Entries = table.Entries.OrderBy(e => e.DynamicPersents).ToList();
+            //foreach (var table in tables)
+            //    table.Entries = table.Entries.OrderBy(e => e.DynamicPersents).ToList();
         }
 
         private void BtnInfo_Click(object sender, RoutedEventArgs e)
