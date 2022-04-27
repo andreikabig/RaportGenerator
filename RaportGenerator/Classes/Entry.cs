@@ -14,7 +14,7 @@ namespace RaportGenerator.Classes
         // Наименование объекта
         public string? Name { get; set; }
 
-        // Свойства объекта
+        // Свойства объектов
         public List<IProperty> Properties = new List<IProperty>();
 
 
