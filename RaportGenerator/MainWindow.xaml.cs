@@ -32,10 +32,15 @@ namespace RaportGenerator
         private string pathExcel;
 
         // List of tables - NOT USED
-        private List<ExcelTable> tables;
+        private List<ExcelTable> tables1;
+        private List<ExcelTable> tables2;
 
         // Tables
-        DataTableCollection tableCollection = null;
+        DataTableCollection tableCollection1 = null;
+        DataTableCollection tableCollection2 = null;
+
+        // Настройки
+        Root settings;
 
         public MainWindow()
         {
@@ -43,21 +48,29 @@ namespace RaportGenerator
 
             // Config the encoding to Russian
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            // Подгрузка настроек
+            using (FileStream fs = new FileStream(@"..\..\..\appsettings.json", FileMode.OpenOrCreate))
+            {
+                settings = JsonSerializer.Deserialize<Root>(fs);
+            }
         }
 
         
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            tables = new List<ExcelTable>();
+            tables1 = new List<ExcelTable>();
+            tables2 = new List<ExcelTable>();
+            GetData(settings.Table1);
+            GetData2(settings.Table2);
 
-            GetData();
+            SortTables(tables1);
+            SortTables(tables2);
 
-            SortTables(tables);
 
-
-            string nameColumns = "ГОРОД\tСВ1\tСВ2\tСВ3\tСВ4\n";
+            string nameColumns = $"{tables2[0].TableName}\nГОРОД\tСВ1\tСВ2\tСВ3\tСВ4\n";
             string msg = $"{nameColumns}";
-            foreach (var entry in tables[0].Entries)
+            foreach (var entry in tables2[0].Entries)
             {
                 //msg += $"{entry.Name}\t{entry.QuantityCurrent}\t{entry.QuantityCurrent}\t{entry.DynamicAbs}\t\t{entry.DynamicPersents}\n";
 
@@ -86,6 +99,7 @@ namespace RaportGenerator
         // МЕТОД ЗАГРУЗКИ ДАННЫХ ИЗ EXCEL ФАЙЛА
         public void BtnLoadData_Click(object sender, RoutedEventArgs e)
         {
+            MessageBox.Show(sender.ToString());
             // Создаем объект диалогового окна
             OpenFileDialog fileSelect = new OpenFileDialog();
 
@@ -103,19 +117,50 @@ namespace RaportGenerator
             {
                 pathExcel = fileSelect.FileName;
                 //MessageBox.Show(pathExcel);
-                OpenExcelFile(pathExcel);
+                OpenExcelFile(pathExcel, true);
             }
-
-            
         }
 
-        // МЕТОД СЧИТЫВАНИЯ ДАННЫХ С ТАБЛИЦ
-        private void OpenExcelFile(string path)
+        // МЕТОД ЗАГРУЗКИ ВТОРОЙ ТАБЛИЦЫ ИЗ EXCEL
+        public void BtnLoadData2_Click(object sender, RoutedEventArgs e)
         {
-            if (tables != null)
-                tables.Clear();
-            if (tableCollection != null)
-                tableCollection.Clear();
+            MessageBox.Show(sender.ToString());
+            // Создаем объект диалогового окна
+            OpenFileDialog fileSelect = new OpenFileDialog();
+
+            // Устаналиваем отображаемые файлы на .xlsx в диалоговом окне
+            fileSelect.DefaultExt = ".xlsx";
+
+            // Устанавливаем фильтры для диалогового окна
+            fileSelect.Filter = "Excel документы (.xlsx)|*.xlsx";
+
+            // Результат взаимодействия с FileDialog
+            var result = fileSelect.ShowDialog();
+
+            // Сохраняем путь к файлу, если файл был выбран
+            if (result == true)
+            {
+                pathExcel = fileSelect.FileName;
+                //MessageBox.Show(pathExcel);
+                OpenExcelFile(pathExcel, false);
+            }
+        }
+
+
+
+        // МЕТОД СЧИТЫВАНИЯ ДАННЫХ С ТАБЛИЦ
+        private void OpenExcelFile(string path, bool first)
+        {
+            if (tables1 != null && first)
+                tables1.Clear();
+            if (tableCollection1 != null && first)
+                tableCollection1.Clear();
+
+            if (tables2 != null && !first)
+                tables2.Clear();
+            if (tableCollection2 != null && !first)
+                tableCollection2.Clear();
+
             using (FileStream fs = File.Open(path, FileMode.Open, FileAccess.Read))
             {
                 using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(fs))
@@ -126,19 +171,43 @@ namespace RaportGenerator
                             //UseHeaderRow = true
                         }
                     });
-                    tableCollection = db.Tables;
 
+                    // ComboBoxPages.Items.Clear();  КАК СДЕЛАТЬ ЧТОБЫ ПОДЧИЩАЛАСЬ ТОЛЬКО ЧАСТЬ КОМБОБОКСА?
+                    var tc = db.Tables;
 
-                    ComboBoxPages.Items.Clear();
-                    // Отображаем каждую страницу Excel в ComboBoxPages
-                    foreach (DataTable dt in tableCollection)
+                    if (first)
                     {
-                        // Добавляем в ComboBoxPages название страницы
-                        ComboBoxPages.Items.Add(dt.TableName);
-                    }
+                        tableCollection1 = tc;
 
-                    // Устанавливаем выбранной страницей - первую страницу
-                    ComboBoxPages.SelectedIndex = 0;
+                        // Отображаем каждую страницу Excel в ComboBoxPages
+                        foreach (DataTable dt in tc)
+                        {
+                            // Добавляем в ComboBoxPages название страницы
+                            ComboBoxPages.Items.Add(dt.TableName);
+                        }
+
+                        // Устанавливаем выбранной страницей - первую страницу
+                        ComboBoxPages.SelectedIndex = 0;
+                    }
+                        
+                    else
+                    {
+                        tableCollection2 = tc;
+
+                        // Отображаем каждую страницу Excel в ComboBoxPages
+                        foreach (DataTable dt in tc)
+                        {
+                            // Добавляем в ComboBoxPages название страницы
+                            ComboBoxPages2.Items.Add(dt.TableName);
+                        }
+
+                        // Устанавливаем выбранной страницей - первую страницу
+                        ComboBoxPages2.SelectedIndex = 0;
+                    }
+                        
+
+                    
+                    
                 }
             }
         }
@@ -146,8 +215,8 @@ namespace RaportGenerator
         // МЕТОД ОБНОВЛЕНИЯ DATAGRID ПРИ СМЕНЕ ВЫБРАННОЙ СТРАНИЦЫ
         private void ComboBoxPages_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Выбираем страницу, соответствующую выбранной в ComboBoxPages
-            DataTable? table = tableCollection[Convert.ToString(ComboBoxPages.SelectedItem)];
+            DataTable? table = tableCollection1[Convert.ToString(ComboBoxPages.SelectedItem)];
+            
 
             // Если такая страница есть
             if (table != null)
@@ -160,124 +229,217 @@ namespace RaportGenerator
 
                 // Запрещаем добавлять новые колонки
                 DgvTable.CanUserAddRows = false;
-                
+            }
+        }
+
+        private void ComboBoxPages2_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            DataTable? table = tableCollection2[Convert.ToString(ComboBoxPages2.SelectedItem)];
+
+            // Если такая страница есть
+            if (table != null)
+            {
+                // Отображаем ее в DataGrid
+                DgvTable.ItemsSource = table.DefaultView;
+
+                // Позволяем автоматически генерировать колонки
+                DgvTable.AutoGenerateColumns = true;
+
+                // Запрещаем добавлять новые колонки
+                DgvTable.CanUserAddRows = false;
+
             }
         }
 
         // МЕТОД СБОРА ДАННЫХ ОБЩЕЙ АНАЛИТИКИ СМРЕТНОСТИ
-        private void GetData()
+        private void GetData(ITable tableSettings)
         {
-            using (FileStream fs = new FileStream(@"..\..\..\appsettings.json", FileMode.OpenOrCreate))
+        //DataTable? table = tableCollection1[Convert.ToString(ComboBoxPages.SelectedItem)];
+            foreach (DataTable table in tableCollection1)
             {
-                var settings = JsonSerializer.Deserialize<Root>(fs);
-
-                //DataTable? table = tableCollection[Convert.ToString(ComboBoxPages.SelectedItem)];
-                foreach (DataTable table in tableCollection)
+                if (table != null)
                 {
-                    if (table != null)
-                    {
-                        // Создание объекта таблицы
-                        ExcelTable exTable = new ExcelTable();
+                    // Создание объекта таблицы
+                    ExcelTable exTable = new ExcelTable();
 
-                        // Добавление названия таблицы
-                        exTable.TableName = table.Rows[settings.Table1.TableName[0]][settings.Table1.TableName[1]].ToString();
+                    // Добавление названия таблицы
+                    exTable.TableName = table.Rows[tableSettings.TableName[0]][tableSettings.TableName[1]].ToString();
 
-                        // Формирование списка объектов таблицы
-                        exTable.Entries = new List<Entry>();
+                    // Формирование списка объектов таблицы
+                    exTable.Entries = new List<Entry>();
 
                         
-                        // Заополнение списка объектов таблицы
-                        for (int i = settings.Table1.Properties.RangeData[0]; i <= settings.Table1.Properties.RangeData[1]; i++) // РЕЗУЛЬТИРУЮЩУЮ БУДЕМ ВЫВОДИТЬ САМОСТОЯТЕЛЬНО, ПОСЛЕ СОРТИРОВКИ!
-                        {
-                            // Создание нового объекта
-                            Entry entry = new Entry();
+                    // Заополнение списка объектов таблицы
+                    for (int i = tableSettings.Properties.RangeData[0]; i <= tableSettings.Properties.RangeData[1]; i++) // РЕЗУЛЬТИРУЮЩУЮ БУДЕМ ВЫВОДИТЬ САМОСТОЯТЕЛЬНО, ПОСЛЕ СОРТИРОВКИ!
+                    {
+                        // Создание нового объекта
+                        Entry entry = new Entry();
                            
-                            // Добавление названия объекта
-                            entry.Name = table.Rows[i][settings.Table1.DataName[1]].ToString();
+                        // Добавление названия объекта
+                        entry.Name = table.Rows[i][tableSettings.DataName[1]].ToString();
 
-                            /* СВОЙСТВА НЕ ЗАПОЛНЯЮТСЯ */
-                            // Заполнение свойств объекта
+                        /* СВОЙСТВА НЕ ЗАПОЛНЯЮТСЯ */
+                        // Заполнение свойств объекта
 
-                            // int _j = settings.Table1.Properties.RangePropertisNames.Range[0]; ПОЧЕМУ ПЕРЕДАЕТСЯ ПО ССЫЛКЕ ? 
-                            for (int j = 1; j <= 4; j++)
+                        // int _j = settings.Table1.Properties.RangePropertisNames.Range[0]; ПОЧЕМУ ПЕРЕДАЕТСЯ ПО ССЫЛКЕ ? 
+                        for (int j = 1; j <= 4; j++)
+                        {
+                                
+
+                            // Считывание названия свойства
+                            string? propName = table.Rows[tableSettings.Properties.RangePropertisNames.Row][j].ToString();
+
+                            // Считывание значения свойства
+                            var value = DoubleConverter(table.Rows[i][j]);
+
+                            // Объявление свойства
+                            IProperty property;
+
+                            // Если конвертер вернул double число
+                            if (value != null)
                             {
-                                
-
-                                // Считывание названия свойства
-                                string? propName = table.Rows[settings.Table1.Properties.RangePropertisNames.Row][j].ToString();
-
-                                // Считывание значения свойства
-                                var value = DoubleConverter(table.Rows[i][j]);
-
-                                // Объявление свойства
-                                IProperty property;
-
-                                // Если конвертер вернул double число
-                                if (value != null)
-                                {
-                                    // Создание свойства объекту с числом
-                                    property = new Property<double>() { Name = propName, Value = (double)value };
-                                }
-                                else 
-                                {
-                                    // Создание свойства объекту без числа
-                                    property = new Property<double>() { Name = propName };
-                                }
-
-                                // Если свойство есть
-                                if (property != null)
-                                {
-                                    // Добавляем свойство в список свойств
-                                    entry.Properties.Add(property);
-                                }
-                                else
-                                    MessageBox.Show("Одно из свойств объекта не было сохранено корректно! Пожалуйста, проверьте правильность составленного документа!");
-                                
-                                
+                                // Создание свойства объекту с числом
+                                property = new Property<double>() { Name = propName, Value = (double)value };
+                            }
+                            else 
+                            {
+                                // Создание свойства объекту без числа
+                                property = new Property<double>() { Name = propName };
                             }
 
-                            // ИСПРАВИТЬ НА ОТДЕЛЬНЫЙ МЕТОД
-                            //try
-                            //{
-                            //    entry.QuantityCurrent = (double)table.Rows[i][1];
-                            //}
-                            //catch (System.InvalidCastException ex)
-                            //{
-                            //}
-
-                            //try
-                            //{
-                            //    entry.QuantityLast = (double)table.Rows[i][2];
-                            //}
-                            //catch (System.InvalidCastException ex)
-                            //{
-                            //}
-
-                            //try
-                            //{
-                            //    entry.DynamicAbs = (double)table.Rows[i][3];
-                            //}
-                            //catch (System.InvalidCastException ex)
-                            //{
-                            //}
-                            //try
-                            //{
-                            //    entry.DynamicPersents = (double)table.Rows[i][4];
-                            //}
-                            //catch (System.InvalidCastException ex)
-                            //{
-                            //}
-
-
-                            exTable.Entries.Add(entry);
+                            // Если свойство есть
+                            if (property != null)
+                            {
+                                // Добавляем свойство в список свойств
+                                entry.Properties.Add(property);
+                            }
+                            else
+                                MessageBox.Show("Одно из свойств объекта не было сохранено корректно! Пожалуйста, проверьте правильность составленного документа!");
+                                
+                                
                         }
-                        tables.Add(exTable);
+
+                        // ИСПРАВИТЬ НА ОТДЕЛЬНЫЙ МЕТОД
+                        //try
+                        //{
+                        //    entry.QuantityCurrent = (double)table.Rows[i][1];
+                        //}
+                        //catch (System.InvalidCastException ex)
+                        //{
+                        //}
+
+                        //try
+                        //{
+                        //    entry.QuantityLast = (double)table.Rows[i][2];
+                        //}
+                        //catch (System.InvalidCastException ex)
+                        //{
+                        //}
+
+                        //try
+                        //{
+                        //    entry.DynamicAbs = (double)table.Rows[i][3];
+                        //}
+                        //catch (System.InvalidCastException ex)
+                        //{
+                        //}
+                        //try
+                        //{
+                        //    entry.DynamicPersents = (double)table.Rows[i][4];
+                        //}
+                        //catch (System.InvalidCastException ex)
+                        //{
+                        //}
+
+
+                        exTable.Entries.Add(entry);
                     }
+                tables1.Add(exTable);
+            }
+        }
+            
+
+            
+    }
+
+        // МЕТОД СБОРА ДАННЫХ ОБЩЕЙ АНАЛИТИКИ СМРЕТНОСТИ
+        private void GetData2(ITable tableSettings)
+        {
+            //DataTable? table = tableCollection1[Convert.ToString(ComboBoxPages.SelectedItem)];
+            foreach (DataTable table in tableCollection2)
+            {
+                if (table != null)
+                {
+                    // Создание объекта таблицы
+                    ExcelTable exTable = new ExcelTable();
+
+                    // Добавление названия таблицы
+                    exTable.TableName = table.Rows[tableSettings.TableName[0]][tableSettings.TableName[1]].ToString();
+
+                    // Формирование списка объектов таблицы
+                    exTable.Entries = new List<Entry>();
+
+
+                    // Заополнение списка объектов таблицы
+                    for (int i = tableSettings.Properties.RangeData[0]; i <= tableSettings.Properties.RangeData[1]; i++) // РЕЗУЛЬТИРУЮЩУЮ БУДЕМ ВЫВОДИТЬ САМОСТОЯТЕЛЬНО, ПОСЛЕ СОРТИРОВКИ!
+                    {
+                        // Создание нового объекта
+                        Entry entry = new Entry();
+
+                        // Добавление названия объекта
+                        entry.Name = table.Rows[i][tableSettings.DataName[1]].ToString();
+
+                        /* СВОЙСТВА НЕ ЗАПОЛНЯЮТСЯ */
+                        // Заполнение свойств объекта
+
+                        // int _j = settings.Table1.Properties.RangePropertisNames.Range[0]; ПОЧЕМУ ПЕРЕДАЕТСЯ ПО ССЫЛКЕ ? 
+                        for (int j = 1; j <= 2; j++)
+                        {
+
+
+                            // Считывание названия свойства
+                            string? propName = table.Rows[tableSettings.Properties.RangePropertisNames.Row][j].ToString();
+
+                            // Считывание значения свойства
+                            var value = DoubleConverter(table.Rows[i][j]);
+
+                            // Объявление свойства
+                            IProperty property;
+
+                            // Если конвертер вернул double число
+                            if (value != null)
+                            {
+                                // Создание свойства объекту с числом
+                                property = new Property<double>() { Name = propName, Value = (double)value };
+                            }
+                            else
+                            {
+                                // Создание свойства объекту без числа
+                                property = new Property<double>() { Name = propName };
+                            }
+
+                            // Если свойство есть
+                            if (property != null)
+                            {
+                                // Добавляем свойство в список свойств
+                                entry.Properties.Add(property);
+                            }
+                            else
+                                MessageBox.Show("Одно из свойств объекта не было сохранено корректно! Пожалуйста, проверьте правильность составленного документа!");
+
+
+                        }
+
+                        exTable.Entries.Add(entry);
+                    }
+                    tables2.Add(exTable);
                 }
             }
 
-            
+
+
         }
+
 
         // МЕТОД ПРЕОБРАЗОВАНИЯ ДАННЫХ В DOUBLE
         private double? DoubleConverter(object obj)

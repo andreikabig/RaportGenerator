@@ -55,7 +55,7 @@
                         <TextBox x:Name="AllRangePropNameY" HorizontalAlignment="Left" Margin="425,156,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="32" Height="16"/>
 
                         <TextBlock HorizontalAlignment="Left" Margin="10,192,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="218"><Run Language="ru-ru" Text="Колонка с названиями свойств объектов:"/></TextBlock>
-                        <Label Content="колонка:" HorizontalAlignment="Left" Margin="271,187,0,0" VerticalAlignment="Top"/>
+                        <Label Content="колонка:"  HorizontalAlignment="Left" Margin="271,187,0,0" VerticalAlignment="Top"/>
                         <TextBox x:Name="AllPropRaw" HorizontalAlignment="Left" Margin="327,192,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="32" Height="16"/>
 
                         <Button Content="Сохранить" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="88"/>

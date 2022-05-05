@@ -15,7 +15,7 @@
         <Menu Height="19" VerticalAlignment="Top" Grid.ColumnSpan="2">
             <MenuItem Header="Файл" FontSize="12">
                 <MenuItem Header="Открыть общую аналитику смертности" Click="BtnLoadData_Click" FontSize="12"></MenuItem>
-                <MenuItem Header="Открыть младенческую аналитику смертности" FontSize="12"></MenuItem>
+                <MenuItem Header="Открыть младенческую аналитику смертности" Click="BtnLoadData2_Click" FontSize="12"></MenuItem>
                 <Separator />
                 <MenuItem Header="Параметры сохранения" FontSize="12"></MenuItem>
             </MenuItem>
@@ -30,6 +30,8 @@
         <Button Content="Создать отчет" HorizontalAlignment="Right" Margin="0,30,25,0" VerticalAlignment="Top" Background="#FFF3F3F3" Width="130" Click="Button_Click" Grid.Column="1"/>
         <DataGrid x:Name="DgvTable" d:ItemsSource="{Binding}" Margin="0,76,0,0" Grid.ColumnSpan="2"/>
         <ComboBox x:Name="ComboBoxPages" HorizontalAlignment="Left" Margin="112,49,0,0" VerticalAlignment="Top" Width="338" Height="22" FontSize="12" SelectionChanged="ComboBoxPages_SelectionChanged"/>
+        <ComboBox x:Name="ComboBoxPages2" HorizontalAlignment="Left" Margin="466,49,0,0" VerticalAlignment="Top" Width="96" Height="22" FontSize="12" SelectionChanged="ComboBoxPages2_SelectionChanged" Grid.ColumnSpan="2"/>
+
         <Label Content="Предпросмотр структуры документа:" HorizontalAlignment="Left" Margin="10,20,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.549,0.647" FontSize="12"/>
 
 
