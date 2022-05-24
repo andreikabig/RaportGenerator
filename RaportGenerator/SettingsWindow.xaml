@@ -25,19 +25,19 @@
                         <TextBlock HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" Text="Настройка данных общей аналитики смертности:" VerticalAlignment="Top" Width="274"/>
 
                         <TextBlock HorizontalAlignment="Left" Margin="10,37,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="218"><Run Language="ru-ru" Text="Расположение названия таблицы:"/></TextBlock>
-                        <Label Content="колонка:" HorizontalAlignment="Left" Margin="271,32,0,0" VerticalAlignment="Top"/>
+                        <Label Content="строка:" HorizontalAlignment="Left" Margin="271,32,0,0" VerticalAlignment="Top"/>
                         <Label Content="столбец:" HorizontalAlignment="Left" Margin="366,32,0,0" VerticalAlignment="Top"/>
                         <TextBox x:Name="AllRawTableName" HorizontalAlignment="Left" Margin="327,37,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="32" Height="16"/>
                         <TextBox x:Name="AllColTableName" HorizontalAlignment="Left" Margin="424,37,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="32" Height="16"/>
 
                         <TextBlock HorizontalAlignment="Left" Margin="10,65,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="218"><Run Language="ru-ru" Text="Расположение названия объектов:"/></TextBlock>
-                        <Label Content="колонка:" HorizontalAlignment="Left" Margin="271,60,0,0" VerticalAlignment="Top"/>
+                        <Label Content="строка:" HorizontalAlignment="Left" Margin="271,60,0,0" VerticalAlignment="Top"/>
                         <Label Content="столбец:" HorizontalAlignment="Left" Margin="366,60,0,0" VerticalAlignment="Top"/>
                         <TextBox x:Name="AllRawDataName" HorizontalAlignment="Left" Margin="327,65,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="32" Height="16"/>
                         <TextBox x:Name="AllColDataName" HorizontalAlignment="Left" Margin="424,65,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="32" Height="16"/>
                         
                         <TextBlock HorizontalAlignment="Left" Margin="10,93,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="218"><Run Language="ru-ru" Text="Описание свойств объектов (если есть):"/></TextBlock>
-                        <Label Content="колонка:" HorizontalAlignment="Left" Margin="271,88,0,0" VerticalAlignment="Top"/>
+                        <Label Content="строка:" HorizontalAlignment="Left" Margin="271,88,0,0" VerticalAlignment="Top"/>
                         <Label Content="столбец:" HorizontalAlignment="Left" Margin="366,88,0,0" VerticalAlignment="Top"/>
                         <TextBox x:Name="AllRawPropDesc" HorizontalAlignment="Left" Margin="327,93,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="32" Height="16"/>
                         <TextBox x:Name="AllColPropDesc" HorizontalAlignment="Left" Margin="424,93,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="32" Height="16"/>
@@ -55,7 +55,7 @@
                         <TextBox x:Name="AllRangePropNameY" HorizontalAlignment="Left" Margin="425,156,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="32" Height="16"/>
 
                         <TextBlock HorizontalAlignment="Left" Margin="10,192,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="218"><Run Language="ru-ru" Text="Колонка с названиями свойств объектов:"/></TextBlock>
-                        <Label Content="колонка:"  HorizontalAlignment="Left" Margin="271,187,0,0" VerticalAlignment="Top"/>
+                        <Label Content="строка:"  HorizontalAlignment="Left" Margin="271,187,0,0" VerticalAlignment="Top"/>
                         <TextBox x:Name="AllPropRaw" HorizontalAlignment="Left" Margin="327,192,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="32" Height="16"/>
 
                         <Button Content="Сохранить" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="88"/>

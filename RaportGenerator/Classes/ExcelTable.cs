@@ -12,7 +12,7 @@ namespace RaportGenerator.Classes
     public class ExcelTable
     {
         // Название таблицы (причина смертности)
-        public string? TableName {get;set;}
+        public string? TableName {get; set;}
 
         // Список данных (города со статистикой)
         public List<Entry> Entries = new List<Entry>();

@@ -14,10 +14,10 @@
         </Grid.ColumnDefinitions>
         <Menu Height="19" VerticalAlignment="Top" Grid.ColumnSpan="2">
             <MenuItem Header="Файл" FontSize="12">
-                <MenuItem Header="Открыть общую аналитику смертности" Click="BtnLoadData_Click" FontSize="12"></MenuItem>
-                <MenuItem Header="Открыть младенческую аналитику смертности" Click="BtnLoadData2_Click" FontSize="12"></MenuItem>
+                <MenuItem Header="Открыть общую аналитику смертности" Click="BtnLoadFirstTable_Click" FontSize="12"></MenuItem>
+                <MenuItem Header="Открыть младенческую аналитику смертности" Click="BtnLoadSecondTable_Click" FontSize="12"></MenuItem>
                 <Separator />
-                <MenuItem Header="Параметры сохранения" FontSize="12"></MenuItem>
+                <MenuItem Header="Параметры сохранения" Click="BtnSaveFolder_Click" FontSize="12"></MenuItem>
             </MenuItem>
 
             <MenuItem Header="Помощь" FontSize="12">

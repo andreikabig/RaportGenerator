@@ -1,25 +1,15 @@
-﻿
-using Microsoft.Win32;
-using RaportGenerator.Classes;
+﻿using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using ExcelDataReader;
 using System.Data;
 using System.IO;
 using System.Text.Json;
 using RaportGenerator.Classes.Settings;
+using RaportGenerator.FixedClasses;
+using Word = Microsoft.Office.Interop.Word;
+
 
 namespace RaportGenerator
 {
@@ -28,78 +18,95 @@ namespace RaportGenerator
     /// </summary>
     public partial class MainWindow : Window
     {
-        // Path to ExcelFile
-        private string pathExcel;
-
         // List of tables - NOT USED
-        private List<ExcelTable> tables1;
-        private List<ExcelTable> tables2;
+        private TablesCollection tables1;
+        private TablesCollection tables2;
 
         // Tables
-        DataTableCollection tableCollection1 = null;
-        DataTableCollection tableCollection2 = null;
+        DataTableCollection? tableCollection1 = null;
+        DataTableCollection? tableCollection2 = null;
 
         // Настройки
-        Root settings;
+        Root? settings;
+
+        // Путь сохранения
+        
 
         public MainWindow()
         {
             InitializeComponent();
 
-            // Config the encoding to Russian
+            // Переопределение кодировки
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             // Подгрузка настроек
+            LoadSettings();
+        }
+
+
+        // МЕТОД ПОДГРУЗКИ НАСТРОЕК
+        private void LoadSettings()
+        {
             using (FileStream fs = new FileStream(@"..\..\..\appsettings.json", FileMode.OpenOrCreate))
             {
                 settings = JsonSerializer.Deserialize<Root>(fs);
             }
         }
 
-        
-        private void Button_Click(object sender, RoutedEventArgs e)
+
+        // МЕТОД КНОПКИ ОТКРЫТИЯ ПЕРВОЙ ТАБЛИЦЫ
+        private void BtnLoadFirstTable_Click(object sender, RoutedEventArgs e)
         {
-            tables1 = new List<ExcelTable>();
-            tables2 = new List<ExcelTable>();
-            GetData(settings.Table1);
-            GetData2(settings.Table2);
+            var res = SaveTableCollection();
 
-            SortTables(tables1);
-            SortTables(tables2);
+            if (tableCollection1 == null || res != null)
+                tableCollection1 = res;
 
-
-            string nameColumns = $"{tables2[0].TableName}\nГОРОД\tСВ1\tСВ2\tСВ3\tСВ4\n";
-            string msg = $"{nameColumns}";
-            foreach (var entry in tables2[0].Entries)
-            {
-                //msg += $"{entry.Name}\t{entry.QuantityCurrent}\t{entry.QuantityCurrent}\t{entry.DynamicAbs}\t\t{entry.DynamicPersents}\n";
-
-                string properties = $"{entry.Name}";
-                
-                for (int i = 0; i < entry.Properties.Count(); i++)
-                {
-                    try
-                    {
-                        Property<double> property = (Property<double>)entry.Properties[i];
-                        properties += $"\t{property.Value}";
-                    }
-                    catch (Exception ex)
-                    {
-                        properties += $"\tNULL";
-                    }
-                }
-                msg += $"{properties}\n";
-
-
-                
-            }
-            MessageBox.Show(msg);
+            // Установка значений в комбобоксы
+            ChangeCombobox(ComboBoxPages, tableCollection1);
         }
 
-        // МЕТОД ЗАГРУЗКИ ДАННЫХ ИЗ EXCEL ФАЙЛА
-        public void BtnLoadData_Click(object sender, RoutedEventArgs e)
+
+        // МЕТОД КНОПКИ ОТКРЫТИЯ ВТОРОЙ ТАБЛИЦЫ
+        private void BtnLoadSecondTable_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show(sender.ToString());
+            var res = SaveTableCollection();
+
+            if (tableCollection2 == null || res != null)
+                tableCollection2 = res;
+
+            // Установка значений в комбобоксы
+            ChangeCombobox(ComboBoxPages2, tableCollection2);
+        }
+
+        // МЕТОД ВЫБОРА ПУТИ СОХРАНЕНИЯ ФАЙЛОВ
+        private void BtnSaveFolder_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("На данный момент нет возможности выбора пути сохранения. Ваш отчет будет сохранен на диске D. В противном случае его придется сохранять самостоятельно.");
+
+        }
+
+        // МЕТОД СОХРАНЕНИЯ СЧИТАННОЙ ИНФОРМАЦИИ С EXCEL
+        private DataTableCollection? SaveTableCollection()
+        {
+            var result = OpenFile();
+
+            if (result == null)
+            {
+                MessageBox.Show("Таблица не была загружена!");
+            }
+
+            // Новое значение для коллекции таблиц
+            return result;
+
+        }
+
+
+        // МЕТОД ОТКРЫТИЯ ДИАЛОГОВОГО ОКНА
+        private DataTableCollection? OpenFile()
+        {
+            // Возвращаемые данные
+            DataTableCollection? tc = null;
             // Создаем объект диалогового окна
             OpenFileDialog fileSelect = new OpenFileDialog();
 
@@ -115,369 +122,378 @@ namespace RaportGenerator
             // Сохраняем путь к файлу, если файл был выбран
             if (result == true)
             {
-                pathExcel = fileSelect.FileName;
-                //MessageBox.Show(pathExcel);
-                OpenExcelFile(pathExcel, true);
+                tc = ExcelTableReader.Load(fileSelect.FileName);
             }
-        }
 
-        // МЕТОД ЗАГРУЗКИ ВТОРОЙ ТАБЛИЦЫ ИЗ EXCEL
-        public void BtnLoadData2_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show(sender.ToString());
-            // Создаем объект диалогового окна
-            OpenFileDialog fileSelect = new OpenFileDialog();
-
-            // Устаналиваем отображаемые файлы на .xlsx в диалоговом окне
-            fileSelect.DefaultExt = ".xlsx";
-
-            // Устанавливаем фильтры для диалогового окна
-            fileSelect.Filter = "Excel документы (.xlsx)|*.xlsx";
-
-            // Результат взаимодействия с FileDialog
-            var result = fileSelect.ShowDialog();
-
-            // Сохраняем путь к файлу, если файл был выбран
-            if (result == true)
-            {
-                pathExcel = fileSelect.FileName;
-                //MessageBox.Show(pathExcel);
-                OpenExcelFile(pathExcel, false);
-            }
+            // Возвращаем таблицу
+            return tc;
         }
 
 
-
-        // МЕТОД СЧИТЫВАНИЯ ДАННЫХ С ТАБЛИЦ
-        private void OpenExcelFile(string path, bool first)
+        // МЕТОД ЗАПОЛНЕНИЯ КОМБОБОКСОВ НА ОСНОВЕ СЧИТАННЫХ ДАННЫХ
+        private void ChangeCombobox(ComboBox comboBox, DataTableCollection? tc)
         {
-            if (tables1 != null && first)
-                tables1.Clear();
-            if (tableCollection1 != null && first)
-                tableCollection1.Clear();
+            // Подсистка прошлых значений комбобокса
+            comboBox.Items.Clear();
 
-            if (tables2 != null && !first)
-                tables2.Clear();
-            if (tableCollection2 != null && !first)
-                tableCollection2.Clear();
-
-            using (FileStream fs = File.Open(path, FileMode.Open, FileAccess.Read))
+            if (tc != null)
             {
-                using (IExcelDataReader reader = ExcelReaderFactory.CreateReader(fs))
+                // Отображаем каждую страницу Excel в ComboBoxPages
+                foreach (DataTable dt in tc)
                 {
-                    DataSet db = reader.AsDataSet(new ExcelDataSetConfiguration() {
-                        ConfigureDataTable = (x) => new ExcelDataTableConfiguration()
-                        {
-                            //UseHeaderRow = true
-                        }
-                    });
-
-                    // ComboBoxPages.Items.Clear();  КАК СДЕЛАТЬ ЧТОБЫ ПОДЧИЩАЛАСЬ ТОЛЬКО ЧАСТЬ КОМБОБОКСА?
-                    var tc = db.Tables;
-
-                    if (first)
-                    {
-                        tableCollection1 = tc;
-
-                        // Отображаем каждую страницу Excel в ComboBoxPages
-                        foreach (DataTable dt in tc)
-                        {
-                            // Добавляем в ComboBoxPages название страницы
-                            ComboBoxPages.Items.Add(dt.TableName);
-                        }
-
-                        // Устанавливаем выбранной страницей - первую страницу
-                        ComboBoxPages.SelectedIndex = 0;
-                    }
-                        
-                    else
-                    {
-                        tableCollection2 = tc;
-
-                        // Отображаем каждую страницу Excel в ComboBoxPages
-                        foreach (DataTable dt in tc)
-                        {
-                            // Добавляем в ComboBoxPages название страницы
-                            ComboBoxPages2.Items.Add(dt.TableName);
-                        }
-
-                        // Устанавливаем выбранной страницей - первую страницу
-                        ComboBoxPages2.SelectedIndex = 0;
-                    }
-                        
-
-                    
-                    
+                    // Добавляем в ComboBoxPages название страницы
+                    comboBox.Items.Add(dt.TableName);
                 }
+
+                // Устанавливаем выбранной страницей - первую страницу
+                comboBox.SelectedIndex = 0;
             }
         }
 
-        // МЕТОД ОБНОВЛЕНИЯ DATAGRID ПРИ СМЕНЕ ВЫБРАННОЙ СТРАНИЦЫ
-        private void ComboBoxPages_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            DataTable? table = tableCollection1[Convert.ToString(ComboBoxPages.SelectedItem)];
-            
 
-            // Если такая страница есть
-            if (table != null)
-            { 
-                // Отображаем ее в DataGrid
-                DgvTable.ItemsSource = table.DefaultView;
-
-                // Позволяем автоматически генерировать колонки
-                DgvTable.AutoGenerateColumns = true;
-
-                // Запрещаем добавлять новые колонки
-                DgvTable.CanUserAddRows = false;
-            }
-        }
-
-        private void ComboBoxPages2_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            DataTable? table = tableCollection2[Convert.ToString(ComboBoxPages2.SelectedItem)];
-
-            // Если такая страница есть
-            if (table != null)
-            {
-                // Отображаем ее в DataGrid
-                DgvTable.ItemsSource = table.DefaultView;
-
-                // Позволяем автоматически генерировать колонки
-                DgvTable.AutoGenerateColumns = true;
-
-                // Запрещаем добавлять новые колонки
-                DgvTable.CanUserAddRows = false;
-
-            }
-        }
-
-        // МЕТОД СБОРА ДАННЫХ ОБЩЕЙ АНАЛИТИКИ СМРЕТНОСТИ
-        private void GetData(ITable tableSettings)
-        {
-        //DataTable? table = tableCollection1[Convert.ToString(ComboBoxPages.SelectedItem)];
-            foreach (DataTable table in tableCollection1)
-            {
-                if (table != null)
-                {
-                    // Создание объекта таблицы
-                    ExcelTable exTable = new ExcelTable();
-
-                    // Добавление названия таблицы
-                    exTable.TableName = table.Rows[tableSettings.TableName[0]][tableSettings.TableName[1]].ToString();
-
-                    // Формирование списка объектов таблицы
-                    exTable.Entries = new List<Entry>();
-
-                        
-                    // Заополнение списка объектов таблицы
-                    for (int i = tableSettings.Properties.RangeData[0]; i <= tableSettings.Properties.RangeData[1]; i++) // РЕЗУЛЬТИРУЮЩУЮ БУДЕМ ВЫВОДИТЬ САМОСТОЯТЕЛЬНО, ПОСЛЕ СОРТИРОВКИ!
-                    {
-                        // Создание нового объекта
-                        Entry entry = new Entry();
-                           
-                        // Добавление названия объекта
-                        entry.Name = table.Rows[i][tableSettings.DataName[1]].ToString();
-
-                        /* СВОЙСТВА НЕ ЗАПОЛНЯЮТСЯ */
-                        // Заполнение свойств объекта
-
-                        // int _j = settings.Table1.Properties.RangePropertisNames.Range[0]; ПОЧЕМУ ПЕРЕДАЕТСЯ ПО ССЫЛКЕ ? 
-                        for (int j = 1; j <= 4; j++)
-                        {
-                                
-
-                            // Считывание названия свойства
-                            string? propName = table.Rows[tableSettings.Properties.RangePropertisNames.Row][j].ToString();
-
-                            // Считывание значения свойства
-                            var value = DoubleConverter(table.Rows[i][j]);
-
-                            // Объявление свойства
-                            IProperty property;
-
-                            // Если конвертер вернул double число
-                            if (value != null)
-                            {
-                                // Создание свойства объекту с числом
-                                property = new Property<double>() { Name = propName, Value = (double)value };
-                            }
-                            else 
-                            {
-                                // Создание свойства объекту без числа
-                                property = new Property<double>() { Name = propName };
-                            }
-
-                            // Если свойство есть
-                            if (property != null)
-                            {
-                                // Добавляем свойство в список свойств
-                                entry.Properties.Add(property);
-                            }
-                            else
-                                MessageBox.Show("Одно из свойств объекта не было сохранено корректно! Пожалуйста, проверьте правильность составленного документа!");
-                                
-                                
-                        }
-
-                        // ИСПРАВИТЬ НА ОТДЕЛЬНЫЙ МЕТОД
-                        //try
-                        //{
-                        //    entry.QuantityCurrent = (double)table.Rows[i][1];
-                        //}
-                        //catch (System.InvalidCastException ex)
-                        //{
-                        //}
-
-                        //try
-                        //{
-                        //    entry.QuantityLast = (double)table.Rows[i][2];
-                        //}
-                        //catch (System.InvalidCastException ex)
-                        //{
-                        //}
-
-                        //try
-                        //{
-                        //    entry.DynamicAbs = (double)table.Rows[i][3];
-                        //}
-                        //catch (System.InvalidCastException ex)
-                        //{
-                        //}
-                        //try
-                        //{
-                        //    entry.DynamicPersents = (double)table.Rows[i][4];
-                        //}
-                        //catch (System.InvalidCastException ex)
-                        //{
-                        //}
-
-
-                        exTable.Entries.Add(entry);
-                    }
-                tables1.Add(exTable);
-            }
-        }
-            
-
-            
-    }
-
-        // МЕТОД СБОРА ДАННЫХ ОБЩЕЙ АНАЛИТИКИ СМРЕТНОСТИ
-        private void GetData2(ITable tableSettings)
-        {
-            //DataTable? table = tableCollection1[Convert.ToString(ComboBoxPages.SelectedItem)];
-            foreach (DataTable table in tableCollection2)
-            {
-                if (table != null)
-                {
-                    // Создание объекта таблицы
-                    ExcelTable exTable = new ExcelTable();
-
-                    // Добавление названия таблицы
-                    exTable.TableName = table.Rows[tableSettings.TableName[0]][tableSettings.TableName[1]].ToString();
-
-                    // Формирование списка объектов таблицы
-                    exTable.Entries = new List<Entry>();
-
-
-                    // Заополнение списка объектов таблицы
-                    for (int i = tableSettings.Properties.RangeData[0]; i <= tableSettings.Properties.RangeData[1]; i++) // РЕЗУЛЬТИРУЮЩУЮ БУДЕМ ВЫВОДИТЬ САМОСТОЯТЕЛЬНО, ПОСЛЕ СОРТИРОВКИ!
-                    {
-                        // Создание нового объекта
-                        Entry entry = new Entry();
-
-                        // Добавление названия объекта
-                        entry.Name = table.Rows[i][tableSettings.DataName[1]].ToString();
-
-                        /* СВОЙСТВА НЕ ЗАПОЛНЯЮТСЯ */
-                        // Заполнение свойств объекта
-
-                        // int _j = settings.Table1.Properties.RangePropertisNames.Range[0]; ПОЧЕМУ ПЕРЕДАЕТСЯ ПО ССЫЛКЕ ? 
-                        for (int j = 1; j <= 2; j++)
-                        {
-
-
-                            // Считывание названия свойства
-                            string? propName = table.Rows[tableSettings.Properties.RangePropertisNames.Row][j].ToString();
-
-                            // Считывание значения свойства
-                            var value = DoubleConverter(table.Rows[i][j]);
-
-                            // Объявление свойства
-                            IProperty property;
-
-                            // Если конвертер вернул double число
-                            if (value != null)
-                            {
-                                // Создание свойства объекту с числом
-                                property = new Property<double>() { Name = propName, Value = (double)value };
-                            }
-                            else
-                            {
-                                // Создание свойства объекту без числа
-                                property = new Property<double>() { Name = propName };
-                            }
-
-                            // Если свойство есть
-                            if (property != null)
-                            {
-                                // Добавляем свойство в список свойств
-                                entry.Properties.Add(property);
-                            }
-                            else
-                                MessageBox.Show("Одно из свойств объекта не было сохранено корректно! Пожалуйста, проверьте правильность составленного документа!");
-
-
-                        }
-
-                        exTable.Entries.Add(entry);
-                    }
-                    tables2.Add(exTable);
-                }
-            }
-
-
-
-        }
-
-
-        // МЕТОД ПРЕОБРАЗОВАНИЯ ДАННЫХ В DOUBLE
-        private double? DoubleConverter(object obj)
-        {
-            try
-            {
-                return (double)obj;
-            }
-            catch (System.InvalidCastException ex)
-            {
-                return null;
-            }
-        }
-
-        // МЕТОД  СОРТИРОВКИ ИСХОДНЫХ ДАННЫХ
-        private void SortTables(List<ExcelTable> tables)
-        {
-            //foreach (var table in tables)
-            //    table.Entries = table.Entries.OrderBy(e => e.DynamicPersents).ToList();
-
-            // ЖЕСТКО ЗАКОДЕННАЯ СОРТИРОВКА ПО ПОСЛЕДНЕМУ СТОЛБЦУ
-            foreach (var table in tables)
-                table.Entries = table.Entries.OrderBy(e => e.Properties[^1].Value).ToList(); // НУЖНО УКАЗАТЬ СРАВНЕНИЕ ПО VALUE 
-            //tables[0].Entries = tables[0].Entries.OrderBy(e => e.Properties[^1].Value).ToList();
-        }
-
+        // МЕТОД ОТКРЫТИЯ ИНФОРМАЦИОННОГО ОКНА
         private void BtnInfo_Click(object sender, RoutedEventArgs e)
         {
             HelpWindow helpWindow = new HelpWindow();
             helpWindow.Show();
         }
 
-       
 
+        // МЕТОД ОТКРЫТИЯ ОКНА НАСТРОЕК
         private void BtnSettings_Click(object sender, RoutedEventArgs e)
         {
             SettingsWindow settingsWindow = new SettingsWindow();
             settingsWindow.Show();
         }
+
+
+        // МЕТОД ОБНОВЛЕНИЯ СТРАНИЦ ПРИ СМЕНЕ ЗНАЧЕНИЯ КОМБОБОКСА
+        private void ComboBoxPages_SelectionChanged(object sender, SelectionChangedEventArgs e) => ShowSelectedTable(tableCollection1, ComboBoxPages);
+        private void ComboBoxPages2_SelectionChanged(object sender, SelectionChangedEventArgs e) => ShowSelectedTable(tableCollection2, ComboBoxPages2);
+
+        
+        // МЕТОД ЗАПОЛНЕНИЯ DGV
+        private void ShowSelectedTable(DataTableCollection dtc, ComboBox comboBox)
+        {
+            DataTable? table = dtc[Convert.ToString(comboBox.SelectedItem)];
+
+            // Если такая страница есть
+            if (table != null)
+            {
+                // Отображаем ее в DataGrid
+                DgvTable.ItemsSource = table.DefaultView;
+
+                // Позволяем автоматически генерировать колонки
+                DgvTable.AutoGenerateColumns = true;
+
+                // Запрещаем добавлять новые колонки
+                DgvTable.CanUserAddRows = false;
+            }
+        }
+
+
+        // КНОПКА СОЗДАНИЯ ОТЧЕТА
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            if (tableCollection1 != null && tableCollection2 != null)
+            {
+                tables1 = new TablesCollection(tableCollection1, settings.Table1);
+                tables2 = new TablesCollection(tableCollection2, settings.Table2);
+            }
+            else
+            {
+                MessageBox.Show("Одна или несколько таблиц не были загружены.", "Невозможно сгенерировать отчет", MessageBoxButton.OK);
+            }
+
+            // Номер таблицы
+
+            int count = 1;
+            // РАБОТА С WORD
+
+            var application = new Word.Application();
+
+            // Добавляем в приложение новый документ
+            Word.Document document = application.Documents.Add();
+            
+            // Range - доступ к тексту
+
+            foreach (var table in tables1.Tables)
+            {
+                // Название таблицы
+                var nameParagraph = document.Paragraphs.Add();
+                var nameRange = nameParagraph.Range;
+                nameRange.Text = table.Name;
+                nameRange.InsertParagraphAfter();
+                nameRange.Font.Name = "Times New Roman";
+
+                // Нумерация таблицы
+                var tableCountParagraph = document.Paragraphs.Add();
+                var tableCountRange = tableCountParagraph.Range;
+                tableCountRange.Text = $"Таблица {count}";
+                tableCountRange.InsertParagraphAfter();
+                tableCountRange.Font.Name = "Times New Roman";
+
+                // Таблица
+                var tableParagraph = document.Paragraphs.Add();
+                var tableRange = tableParagraph.Range;
+                Word.Table t = document.Tables.Add(tableRange, table.Entries.Count + 3, 5); // range, строк, столбцов
+                t.Rows.SetHeight(2.5f, Word.WdRowHeightRule.wdRowHeightAuto); // Установка высоты столбцов - допустимо
+                
+
+                // Границы
+                t.Borders.InsideLineStyle = t.Borders.OutsideLineStyle = Word.WdLineStyle.wdLineStyleSingle;
+
+                // Выравнивание по центру по вертикали
+                t.Range.Cells.VerticalAlignment = Word.WdCellVerticalAlignment.wdCellAlignVerticalCenter;
+                t.Rows[1].Range.Bold = 1;
+                t.Rows[1].Range.Font.Name = "Times New Roman";
+                t.Rows[1].Range.ParagraphFormat.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
+
+                // Выравнивание по центру
+                for (int i = 1; i <= t.Rows.Count; i++)
+                {
+                    t.Rows[i].Range.ParagraphFormat.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
+                }
+
+
+                // Выравнивание справа
+                for (int i = 3; i <= t.Rows.Count; i++)
+                {
+                    t.Rows[i].Range.ParagraphFormat.Alignment = Word.WdParagraphAlignment.wdAlignParagraphRight;
+                }
+
+               
+
+                // Информация об определенной ячейки в таблице
+                Word.Range cellRange;
+                cellRange = t.Cell(1, 1).Range;
+                cellRange.Font.Name = "Times New Roman";
+                cellRange.Text = "Наименование муниципального района/городского округа";
+
+                t.Cell(1, 1).Merge(t.Cell(2, 1));
+
+                cellRange = t.Cell(1, 2).Range;
+                cellRange.Text = table.Name;
+                cellRange.Font.Name = "Times New Roman";
+
+
+                // Объединение ячеек Названия таблицы
+                t.Cell(1, 2).Merge(t.Cell(1,3));
+                t.Cell(1,2).Merge(t.Cell(1,3));
+                t.Cell(1,2).Merge(t.Cell(1,3));
+                //t.Cell(1, 4).Merge(t.Cell(1, 5));
+
+                // Заполняем названия колонок свойств 2.2 2.3 2.4 2.5
+                for (int i = 0; i < 4; i++)
+                {
+                    cellRange = t.Cell(2, i + 2).Range;
+                    
+                    cellRange.Text = table.Entries[0].Properties[i].Name;
+                }
+
+                // Заполнение Entries
+                for (int i = 0; i < table.Entries.Count; i++)
+                { 
+                    // Вытаскиваем название Entrie
+                    var currentEntrie = table.Entries[i];
+                    cellRange = t.Cell(i+3, 1).Range;
+                    
+
+                    cellRange.Text = currentEntrie.Name;
+
+                    // Заполнение свойств
+                    for (int j = 0; j < table.Entries[i].Properties.Count; j++)
+                    { 
+                        var currentProperty = table.Entries[i].Properties[j];
+                        cellRange = t.Cell(i+3, j+2).Range;
+                        
+                        //cellRange.Text = Convert.ToString(currentProperty.Value);
+                        
+                        if (j < table.Entries[i].Properties.Count - 1)
+                            cellRange.Text = Convert.ToString(currentProperty.Value);
+                        else
+                            cellRange.Text = $"{currentProperty.Value:N1}";
+                        
+                    }
+                }
+
+                // Добавление итога
+                cellRange = t.Cell(table.Entries.Count + 3, 1).Range;
+                cellRange.Text = "Итог";
+
+                // Подсчеты по первому свойству
+                // Подсчеты по второму свойству
+                int firstValue = 0;
+                int secondValue = 0;
+                foreach (var entry in table.Entries)
+                {
+                    try
+                    {
+                        firstValue += (int)entry.Properties[0].Value;
+                    }
+                    catch { }
+                    try
+                    {
+                        secondValue += (int)entry.Properties[1].Value;
+                    }
+                    catch { }
+                }
+
+                // Подсчеты по третьему свойству
+                int thirdValue = firstValue - secondValue;
+
+                // Подсчеты по четвертому свойству
+                double fourthValue = (Convert.ToDouble(firstValue) / Convert.ToDouble(secondValue)) * 100 - 100;
+
+
+                cellRange = t.Cell(table.Entries.Count + 3, 2).Range;
+                cellRange.Text = $"{firstValue}";
+
+                cellRange = t.Cell(table.Entries.Count + 3, 3).Range;
+                cellRange.Text = $"{secondValue}";
+
+                cellRange = t.Cell(table.Entries.Count + 3, 4).Range;
+                cellRange.Text = $"{thirdValue}";
+
+                cellRange = t.Cell(table.Entries.Count + 3, 5).Range;
+                cellRange.Text = $"{fourthValue:N1}";
+
+
+
+                document.Words.Last.InsertBreak(Word.WdBreakType.wdPageBreak);
+
+
+                count++;
+            }
+
+            // Создание второй группы таблиц
+            foreach (var table in tables2.Tables)
+            {
+                // Название таблицы
+                var nameParagraph = document.Paragraphs.Add();
+                var nameRange = nameParagraph.Range;
+                nameRange.Text = table.Name;
+                nameRange.InsertParagraphAfter();
+                nameRange.Font.Name = "Times New Roman";
+
+                // Нумерация таблицы
+                var tableCountParagraph = document.Paragraphs.Add();
+                var tableCountRange = tableCountParagraph.Range;
+                tableCountRange.Text = $"Таблица {count}";
+                tableCountRange.InsertParagraphAfter();
+                tableCountRange.Font.Name = "Times New Roman";
+
+                // Таблица
+                var tableParagraph = document.Paragraphs.Add();
+                var tableRange = tableParagraph.Range;
+                Word.Table t = document.Tables.Add(tableRange, table.Entries.Count + 2, 3); // range, строк, столбцов
+                t.Rows.SetHeight(2.5f, Word.WdRowHeightRule.wdRowHeightAuto); // Установка высоты столбцов - допустимо
+
+
+                // Границы
+                t.Borders.InsideLineStyle = t.Borders.OutsideLineStyle = Word.WdLineStyle.wdLineStyleSingle;
+
+                // Выравнивание по центру по вертикали заголовков
+                t.Range.Cells.VerticalAlignment = Word.WdCellVerticalAlignment.wdCellAlignVerticalCenter;
+
+                t.Rows[1].Range.Bold = 1;
+                t.Rows[1].Range.Font.Name = "Times New Roman";
+
+                for (int a = 1; a <= t.Rows.Count; a++)
+                {
+                    t.Rows[a].Range.ParagraphFormat.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
+                }
+                
+                
+
+                // Формирование заголовков
+                Word.Range cellRange;
+                cellRange = t.Cell(1, 1).Range;
+                cellRange.Font.Name = "Times New Roman";
+                cellRange.Text = "Территория";
+
+                cellRange = t.Cell(1, 2).Range;
+                cellRange.Font.Name = "Times New Roman";
+                cellRange.Text = table.Entries[0].Properties[0].Name;
+
+                cellRange = t.Cell(1, 3).Range;
+                cellRange.Font.Name = "Times New Roman";
+                cellRange.Text = table.Entries[0].Properties[1].Name;
+
+                // Заполнение Entries
+                // Заполнение Entries
+                for (int i = 0; i < table.Entries.Count; i++)
+                {
+                    // Вытаскиваем название Entrie
+                    var currentEntrie = table.Entries[i];
+                    cellRange = t.Cell(i + 2, 1).Range;
+
+
+                    cellRange.Text = currentEntrie.Name;
+
+                    // Заполнение свойств
+                    for (int j = 0; j < table.Entries[i].Properties.Count; j++)
+                    {
+                        var currentProperty = table.Entries[i].Properties[j];
+                        cellRange = t.Cell(i + 2, j + 2).Range;
+
+                        //cellRange.Text = Convert.ToString(currentProperty.Value);
+                        try
+                        {
+                            cellRange.Text = Convert.ToString((int)currentProperty.Value);
+                        }
+                        catch { }
+                        
+                    }
+                }
+
+
+                // Добавление итога
+                cellRange = t.Cell(table.Entries.Count + 2, 1).Range;
+                cellRange.Text = "Всего по области";
+
+                int firstValue = 0;
+                int secondValue = 0;
+
+                foreach (var entry in table.Entries)
+                {
+                    try
+                    {
+                        firstValue += (int)entry.Properties[0].Value;
+                    }
+                    catch { }
+                    try
+                    {
+                        secondValue += (int)entry.Properties[1].Value;
+                    }
+                    catch { }
+                }
+
+                cellRange = t.Cell(table.Entries.Count + 2, 2).Range;
+                cellRange.Text = $"{firstValue}";
+
+                cellRange = t.Cell(table.Entries.Count + 2, 3).Range;
+                cellRange.Text = $"{secondValue}";
+
+                //document.Words.Last.InsertBreak(Word.WdBreakType.wdPageBreak);
+            }
+
+
+
+            application.Visible = true;
+            try
+            {
+
+            }
+            catch 
+            {
+                MessageBox.Show(@"Не удалось сохранить отчет по пути D:\\, пожалуйста сохраните отчет самостоятельно.");
+            }
+            document.SaveAs2(@"D:\Отчет аналитики.docx");
+            document.SaveAs2(@"D:\Отчет аналитики.pdf", Word.WdExportFormat.wdExportFormatPDF);
+
+        }
+
+
     }
 }
